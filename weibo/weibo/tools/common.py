@@ -32,7 +32,7 @@ def get_publish_time(content):
     elif '刚刚' in _time:
         return datetime.now().strftime('%Y-%m-%d %H:%M')
     elif '分钟' in _time:
-        return (datetime.now() - timedelta(minutes=int(_time[_time.find('分钟')])
+        return (datetime.now() - timedelta(minutes=int(_time[:_time.find('分钟')])
                                                 )
                     ).strftime('%Y-%m-%d %H:%M')
     else:

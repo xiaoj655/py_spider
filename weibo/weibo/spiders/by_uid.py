@@ -33,14 +33,13 @@ class ByUidSpider(scrapy.Spider):
     def start_requests(self):
         for x in cfg.uid:
             self.current_uid = x
-            # yield scrapy.Request(f"https://weibo.cn/{x}/profile")
-            yield scrapy.Request('https://weibo.cn/1858002662/profile?page=17')
+            yield scrapy.Request(f"https://weibo.cn/{x}/profile")
 
     # set max page
     def initial(self, response):
         _max_page = response.xpath("//div[@id='pagelist']//div/text()").extract()
         _max_page = int(_max_page[1].split('/')[-1][:-1])
-        self.max_page = min(_max_page, self.max_page)
+        self.max_page = min(_max_page, cfg.max_page)
         self.parse(response)
     
     def parse(self, response):
@@ -88,12 +87,14 @@ class ByUidSpider(scrapy.Spider):
         
         cur_page = response.xpath("//div[@id='pagelist']//div/text()").extract()[-1].split('/')[0]
         cur_page = int(cur_page)
-        if(cur_page > self.max_page):
+        if(cur_page >= self.max_page):
             print(f'爬取用户{self.current_uid}完毕')
             return
         else:
             nxt = response.xpath("//div[@id='pagelist']//div/a/@href").extract()[0]
-            print(f'用户: {self.current_uid}, 第{cur_page}页')
-            time.sleep(random.randint(5,10))
+            print(f'用户: {self.current_uid}, 第{cur_page}页, 结束{self.max_page}页')
+            time.sleep(random.randint(1,3))
+            if(random.randint(1,10)>6):
+                time.sleep(random.randint(6,10))
             yield response.follow(nxt, callback=self.parse)
     

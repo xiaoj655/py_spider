@@ -7,6 +7,7 @@ from scrapy import signals
 
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
+from config.config import cfg
 
 
 class WeiboSpiderMiddleware:
@@ -50,6 +51,7 @@ class WeiboSpiderMiddleware:
 
         # Must return only requests (not items).
         for r in start_requests:
+            r.headers.update(cfg.get_headers())
             yield r
 
     def spider_opened(self, spider):
