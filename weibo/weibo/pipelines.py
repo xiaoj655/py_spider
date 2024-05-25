@@ -8,7 +8,7 @@
 from itemadapter import ItemAdapter
 from db.mongo import db
 
-collection = db.get_collection('weibo2')
+collection = db.get_collection('weibo3')
 class WeiboPipeline:
 
     def process_item(self, item, spider):

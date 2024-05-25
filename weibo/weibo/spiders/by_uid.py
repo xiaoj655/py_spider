@@ -7,6 +7,7 @@ from weibo.tools import common
 from lxml import etree
 import time
 import random
+import os
 
 class Item():
     publisher_id:       int  = None
@@ -24,7 +25,7 @@ class ByUidSpider(scrapy.Spider):
     allowed_domains = ["weibo.cn"]
     max_page = cfg.max_page
     start_urls = [f"https://weibo.cn/{x}/profile" for x in cfg.uid]
-    current_uid = None
+    # current_uid = None
 
     # def start_requests(self):
     #     for url in self.start_urls:
@@ -32,8 +33,8 @@ class ByUidSpider(scrapy.Spider):
         
     def start_requests(self):
         for x in cfg.uid:
-            self.current_uid = x
-            yield scrapy.Request(f"https://weibo.cn/{x}/profile")
+            # self.current_uid = x
+            yield scrapy.Request(f"https://weibo.cn/{x}/profile", meta={"uid": x})
 
     # set max page
     def initial(self, response):
@@ -44,6 +45,7 @@ class ByUidSpider(scrapy.Spider):
     
     def parse(self, response):
         # get all content divs
+        print('*'*100)
         contents = response.xpath("//div[@class='c']")[:-1]
         article_id = map(lambda x: x.xpath('./@id').extract()[0][2:], contents)
         content = map(lambda x: ''.join(x.xpath("./div/span[@class='ctt']/text()").extract()), contents)
@@ -51,6 +53,8 @@ class ByUidSpider(scrapy.Spider):
         footer = map(lambda x: common.get_footer(x), contents)
         publish_at = map(lambda x: common.get_publish_time(x), contents)
         publish_tool = map(lambda x: common.get_publish_tool(x), contents)
+        # uid = response.meta.get('uid')
+        uid = response.meta.get('uid')
         img_url_list = []
 
         for x in contents:
@@ -70,7 +74,7 @@ class ByUidSpider(scrapy.Spider):
                 except Exception:
                     img_url_list.append([])
         
-        article_id = map(lambda x: self.current_uid + '#' + x, article_id)
+        article_id = map(lambda x: uid + '#' + x, article_id)
         for x in zip(content, is_forward, footer, publish_at, publish_tool, img_url_list, article_id):
             _is_forward, forward_who = x[1]
             yield {
@@ -82,19 +86,22 @@ class ByUidSpider(scrapy.Spider):
                 "publish_tool": x[4],
                 "img_url_list": x[5],
                 "article_id": x[6],
-                "publisher_id": self.current_uid
+                "publisher_id": uid
             }
         
         cur_page = response.xpath("//div[@id='pagelist']//div/text()").extract()[-1].split('/')[0]
         cur_page = int(cur_page)
-        if(cur_page >= self.max_page):
-            print(f'爬取用户{self.current_uid}完毕')
+        if(cur_page >= cfg.max_page):
+            print(f'爬取用户{uid}完毕')
+            with open(os.path.join(os.path.dirname(__file__), 'done_uid.txt'), 'a') as f:
+                f.write(uid)
+                f.write('\n')
             return
         else:
             nxt = response.xpath("//div[@id='pagelist']//div/a/@href").extract()[0]
-            print(f'用户: {self.current_uid}, 第{cur_page}页, 结束{self.max_page}页')
+            print(f'用户: {uid}, 第{cur_page}页, 结束{self.max_page}页')
             time.sleep(random.randint(1,3))
             if(random.randint(1,10)>6):
                 time.sleep(random.randint(6,10))
-            yield response.follow(nxt, callback=self.parse)
+            yield response.follow(nxt, callback=self.parse, meta={'uid':uid})
     

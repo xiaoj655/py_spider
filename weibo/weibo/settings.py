@@ -21,7 +21,7 @@ NEWSPIDER_MODULE = "weibo.spiders"
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
-# LOG_LEVEL = "WARN"
+LOG_LEVEL = "WARN"
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
