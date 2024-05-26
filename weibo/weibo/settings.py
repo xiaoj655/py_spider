@@ -20,6 +20,7 @@ NEWSPIDER_MODULE = "weibo.spiders"
 #USER_AGENT = "weibo (+http://www.yourdomain.com)"
 
 # Obey robots.txt rules
+DOWNLOAD_TIMEOUT=9999
 ROBOTSTXT_OBEY = False
 LOG_LEVEL = "WARN"
 
@@ -70,6 +71,7 @@ SPIDER_MIDDLEWARES = {
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
    "weibo.pipelines.WeiboPipeline": 300,
+   "weibo.pipelines.WeiboUserInfoPipline": 301
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

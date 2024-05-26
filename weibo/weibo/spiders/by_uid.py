@@ -9,6 +9,14 @@ import time
 import random
 import os
 
+with open(os.path.join(os.path.dirname(__file__), 'done_uid.txt'), 'r') as f:
+    done_uid = []
+    while True:
+        x = f.readline().strip()
+        if not x:
+            break
+        done_uid.append(x)
+
 class Item():
     publisher_id:       int  = None
     content:            str  = None
@@ -34,6 +42,8 @@ class ByUidSpider(scrapy.Spider):
     def start_requests(self):
         for x in cfg.uid:
             # self.current_uid = x
+            if x in done_uid:
+                continue
             yield scrapy.Request(f"https://weibo.cn/{x}/profile", meta={"uid": x})
 
     # set max page
@@ -100,7 +110,7 @@ class ByUidSpider(scrapy.Spider):
         else:
             nxt = response.xpath("//div[@id='pagelist']//div/a/@href").extract()[0]
             print(f'用户: {uid}, 第{cur_page}页, 结束{self.max_page}页')
-            time.sleep(random.randint(1,3))
+            time.sleep(random.randint(10,15))
             if(random.randint(1,10)>6):
                 time.sleep(random.randint(6,10))
             yield response.follow(nxt, callback=self.parse, meta={'uid':uid})

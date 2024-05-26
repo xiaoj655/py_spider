@@ -8,13 +8,27 @@
 from itemadapter import ItemAdapter
 from db.mongo import db
 
-collection = db.get_collection('weibo3')
 class WeiboPipeline:
+    collection = db.get_collection('weibo3')
+
+    def process_item(self, item, spider):
+        if(not item.get('article_id', None)):
+            return item
+        try:
+            self.collection.insert_one(item)
+        except Exception:
+            self.collection.delete_one({"article_id": item['article_id']})
+            self.collection.insert_one(item)
+        return item
+
+class WeiboUserInfoPipline:
+    collection = db.get_collection('user_info')
 
     def process_item(self, item, spider):
         try:
-            collection.insert_one(item)
+            self.collection.insert_one(item)
         except Exception:
-            collection.delete_one({"article_id": item['article_id']})
-            collection.insert_one(item)
+            self.collection.delete_one({"uid": item['uid']})
+            self.collection.insert_one(item)
         return item
+        
